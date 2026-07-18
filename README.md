@@ -153,7 +153,7 @@ The AI evaluates every lead using:
 # 📂 Project Structure
 
 ```
-04.n8n-ai-crm-lead-qualification
+04.n8n-ai-crm-lead-scoring
 │
 ├── workflow.json
 ├── api-request.json
