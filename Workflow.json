@@ -1,0 +1,722 @@
+{
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "crm",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -576,
+        176
+      ],
+      "id": "bb75afab-f3d7-4680-b489-cc4f29e86fd7",
+      "name": "Webhook",
+      "webhookId": "00000000-0000-0000-0000-000000000008"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Score this lead.\n\nName: {{ $json.name }}\nCompany: {{ $json.company }}\nBudget: {{ $json.budget }}\nRequirement: {{ $json.requirement }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a Senior AI CRM Lead Qualification Expert working for AutoNode.\n\nYour job is to analyze incoming business leads and qualify them exactly like an experienced Sales Manager.\n\nEvaluate the lead using ALL available information.\n\nFactors to consider:\n\n1. Budget\n2. Company Quality\n3. Requirement Clarity\n4. Project Complexity\n5. Probability of Closing\n6. Business Value\n7. Decision Maker Intent\n8. Automation/AI Opportunity\n\n---------------------------------------------------\nSCORING RULES\n---------------------------------------------------\n\nReturn an integer score between 1 and 10.\n\n10 = Enterprise client, very high budget, crystal clear requirement\n8-9 = High quality business lead\n6-7 = Good potential\n4-5 = Average lead\n1-3 = Weak lead\n\n---------------------------------------------------\nLEAD STATUS RULES\n---------------------------------------------------\n\nIf score >= 9\nlead_status = \"Hot\"\n\nIf score >= 7\nlead_status = \"Qualified\"\n\nIf score >= 5\nlead_status = \"Warm\"\n\nIf score >= 3\nlead_status = \"Nurture\"\n\nElse\nlead_status = \"Cold\"\n\n---------------------------------------------------\nPRIORITY RULES\n---------------------------------------------------\n\nHot -> Critical\n\nQualified -> High\n\nWarm -> Medium\n\nNurture -> Low\n\nCold -> Ignore\n\n---------------------------------------------------\nFOLLOW UP TIME\n---------------------------------------------------\n\nHot -> Within 15 Minutes\n\nQualified -> Within 1 Hour\n\nWarm -> Within 24 Hours\n\nNurture -> Within 3 Days\n\nCold -> No Follow-up\n\n---------------------------------------------------\nREASON\n---------------------------------------------------\n\nMaximum 20 words.\n\n---------------------------------------------------\nSUMMARY\n---------------------------------------------------\n\nMaximum 30 words.\n\n---------------------------------------------------\nRULES\n\nReturn ONLY valid JSON.\n\nNever use markdown.\n\nNever explain.\n\nNever include extra text.\n\nNever return null.\n\nAlways return every field.\n\n---------------------------------------------------\nOUTPUT FORMAT Only Json\n---------------------------------------------"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        304,
+        -96
+      ],
+      "id": "3b01464f-06b1-412f-a894-0e397e3799f0",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "398ae215-2911-4fd7-a1bc-5c74b2850c03",
+              "leftValue": "={{ $json.output.score  }}",
+              "rightValue": 5,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        640,
+        -112
+      ],
+      "id": "98c30b0c-e517-4e02-a290-a28b6ba769dc",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ce839f45-d24c-4f88-a9d4-0688fad7a853",
+              "name": "name",
+              "value": "={{ ($json.body.name ?? \"\").trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "3432dbdf-bc6e-45dc-92f6-ea1dc01fb3fe",
+              "name": "company",
+              "value": "={{ ($json.body.company ?? \"\").trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "2ab3d4a1-ad69-4d79-b485-3cd183507615",
+              "name": "budget",
+              "value": "={{ ($json.body.budget ?? \"\").trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "d23fd08e-c7fb-4fc6-a5fe-3a6eca66006c",
+              "name": "requirement",
+              "value": "={{ ($json.body.requirement ?? \"\").trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "2661ea5e-cc7e-4796-ac1c-0b971d4f7d7c",
+              "name": "email",
+              "value": "={{ ($json.body.email ?? \"\").trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "fffb88ab-f7af-4660-abb8-c7f4474765b7",
+              "name": "created at",
+              "value": "={{ $now }}",
+              "type": "string"
+            },
+            {
+              "id": "f027deda-b006-4cd4-b00c-5f2f4db91fff",
+              "name": "lead_status",
+              "value": "Pending AI Score",
+              "type": "string"
+            },
+            {
+              "id": "b6a4d7e0-0818-4871-bbf7-4435a58d8601",
+              "name": "workflow",
+              "value": "CRM Automation v1",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        176
+      ],
+      "id": "2a581e44-16ed-4685-a8ae-e10d4f2d132b",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "sendTo": "your-email@example.com",
+        "subject": "=🔥 High Value Lead |score {{ $json.output.score }} | {{ $('Edit Fields').item.json.company }}",
+        "message": "=🔥 High Value Lead  Name: {{ $('Edit Fields').item.json.name }}  Company: {{ $('Edit Fields').item.json.company }}  Budget:  {{ $('Edit Fields').item.json.budget }} AI Score: {{ $('AI Agent').item.json.output.score }}/10  Reason: {{ $('AI Agent').item.json.output.reason }}.  Please contact immediately.",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        -176
+      ],
+      "id": "f2ed1abb-254b-4028-a158-0c16b9f3f921",
+      "name": "Send a message",
+      "webhookId": "00000000-0000-0000-0000-000000000009",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FAKE_GMAIL_CRED_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.email }}",
+        "subject": "=🟡 Nurture Lead | {{ $('Edit Fields').item.json.company }}",
+        "emailType": "text",
+        "message": "=Hi Team,  This lead needs nurturing.  Name: {{ $('Edit Fields').item.json.name }} Company: {{ $('Edit Fields').item.json.company }} Budget: {{ $('Edit Fields').item.json.budget }} Requirement: {{ $('Edit Fields').item.json.requirement }} AI Score:{{ $json.output.score }} Reason: {{ $json.output.reason }}.    ",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        880,
+        16
+      ],
+      "id": "6fe3cecc-3807-47ce-b139-583b2087c491",
+      "name": "Send a message1",
+      "webhookId": "00000000-0000-0000-0000-000000000010",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "FAKE_GMAIL_CRED_ID",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"score\": 9,\n  \"lead_status\": \"Hot\",\n  \"priority\": \"Critical\",\n  \"reason\": \"Enterprise company with clear AI automation requirement and strong budget.\",\n  \"follow_up_time\": \"Within 15 Minutes\",\n  \"summary\": \"Very high-value enterprise AI automation opportunity requiring immediate sales contact.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        448,
+        144
+      ],
+      "id": "58bfa7a4-7636-414f-b908-69026f4a35f5",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1248,
+        -144
+      ],
+      "id": "27237625-b23c-4f8a-ad0c-964142c0092f",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"success\": true,\n  \"score\": \"{{ $('AI Agent').item.json.output.score }}\",\n  \"reason\": \"{{ $('AI Agent').item.json.output.reason }}\",\n  \"status\": \"{{ $('AI Agent').item.json.output.lead_status }}\",\n  \"company\": \"{{ $('Edit Fields').item.json.company }}\",\n  \"next_action\": \"{{ $('AI Agent').item.json.output.follow_up_time }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1808,
+        -64
+      ],
+      "id": "c8c83698-e45f-49b6-a738-a9c8ca7a597e",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a31da8ba-12d8-45b6-b41c-0b3b5f021a4b",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "50550190-f4f7-408a-a140-11811d9fcf83",
+              "leftValue": "={{ $json.company }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "dc9e5cbf-0485-4d03-a309-6ef36f432c9c",
+              "leftValue": "={{ $json.requirement }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "e9d8764f-9c74-40d7-a67b-09bcd3d3025a",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2b2e0f4d-b177-4bc2-99b9-28f9834875f1",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "329f1120-38f1-4616-8c32-75b593fcd290",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": ".",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        80,
+        176
+      ],
+      "id": "cdb057b0-30c3-4f41-a532-06b635cc4b1c",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error\": \"VALIDATION_ERROR\",\n  \"message\": \"Name, Email, Company and Requirement are required.\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        368,
+        320
+      ],
+      "id": "36dfa0cd-da2d-406f-8c26-100d8cd28021",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0000000000",
+          "mode": "list",
+          "cachedResultName": "your-channel-name"
+        },
+        "text": "=❌ CRM Workflow Error  Lead: {{ $('Edit Fields').item.json.name }}  Company: {{ $('Edit Fields').item.json.company }}  Node: {{ $json.error.node.name }}  Error: {{ $json.error.message }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        656,
+        112
+      ],
+      "id": "93eb0ec3-7a05-4f51-b044-36e399d5ba76",
+      "name": "Send a message2",
+      "webhookId": "00000000-0000-0000-0000-000000000011",
+      "credentials": {
+        "slackApi": {
+          "id": "FAKE_SLACK_CRED_ID",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "llama-3.3-70b-versatile",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        272,
+        128
+      ],
+      "id": "137fc108-e1f9-481d-b52c-049110911cb7",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "FAKE_GROQ_CRED_ID",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"success\": false,\n  \"error\": \"Ai Agent Error\",\n  \"message\": \"please cheack your ai agent\"\n}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        864,
+        288
+      ],
+      "id": "155015c4-9c68-4828-9e0d-f9e5a56c2c1d",
+      "name": "Respond to Webhook2"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "FAKE_GOOGLE_SHEET_ID_1234567890",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/FAKE_GOOGLE_SHEET_ID_1234567890/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 0,
+          "mode": "list",
+          "cachedResultName": "CRM 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/FAKE_GOOGLE_SHEET_ID_1234567890/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Edit Fields').item.json.name }}",
+            "Company": "={{ $('Edit Fields').item.json.company }}",
+            "Budget": "={{ $('Edit Fields').item.json.budget }}",
+            "Requirement": "={{ $('Edit Fields').item.json.requirement }}",
+            "Email": "={{ $('Edit Fields').item.json.email }}",
+            "Workflow": "={{ $('Edit Fields').item.json.workflow }}",
+            "Created At": "={{ $now }}",
+            "Lead status": "={{ $('AI Agent').item.json.output.lead_status }}",
+            "Reason": "={{ $('AI Agent').item.json.output.reason }}",
+            "Lead Score": "={{ $('AI Agent').item.json.output.score }}",
+            "Priority": "={{ $('AI Agent').item.json.output.priority }}"
+          },
+          "matchingColumns": [
+            "Email"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Budget",
+              "displayName": "Budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Requirement",
+              "displayName": "Requirement",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Created At",
+              "displayName": "Created At",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead status",
+              "displayName": "Lead status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Workflow",
+              "displayName": "Workflow",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Reason",
+              "displayName": "Reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Lead Score",
+              "displayName": "Lead Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1520,
+        -64
+      ],
+      "id": "31faf38a-bb27-41c7-adc2-014825fe2f40",
+      "name": "Append or update row in sheet",
+      "retryOnFail": true,
+      "waitBetweenTries": 3000,
+      "credentials": {
+        "googleApi": {
+          "id": "FAKE_GOOGLE_CRED_ID",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Append or update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append or update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
