@@ -164,12 +164,7 @@ The AI evaluates every lead using:
 ├── assets
 │   ├── workflow.png
 │   └── architecture.png
-│
-└── screenshots
-    ├── webhook-test.png
-    ├── gmail-notification.png
-    ├── google-sheet.png
-    └── workflow-execution.png
+
 ```
 
 ---
@@ -196,17 +191,6 @@ The AI evaluates every lead using:
 
 ---
 
-# 📸 Screenshots
-
-* Workflow
-* API Testing
-* Gmail Notification
-* Google Sheets CRM
-* Workflow Execution
-
-(Add screenshots inside the `screenshots` folder.)
-
----
 
 # 💡 Use Cases
 
